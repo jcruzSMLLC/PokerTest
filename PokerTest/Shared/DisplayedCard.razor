@@ -1,0 +1,31 @@
+﻿@if (Story is null)
+{
+    <p>No story selected.</p>
+}
+else
+{
+    <div class="card" style="width: 16rem;">
+        <div class="card-body">
+            <h5 class="card-title">@Story.DevopsNumber</h5>
+            <h6 class="card-subtitle mb-2 text-muted">@Story.Title</h6>
+            <p class="card-text">@Story.Notes</p>
+            @if (@Story.Sprint is null)
+            {
+                <p class="card-text text-muted">Not assigned to a sprint</p>
+            }
+            else
+            {
+                <p class="card-text">Assigned to @Story.Sprint.Name</p>
+            }
+            <button class="btn btn-primary">Assign Points</button>
+        </div>
+        
+    </div>
+    <br />
+    
+}
+
+@code {
+    [Parameter]
+    public Story? Story { get; set; }
+}

@@ -1,0 +1,84 @@
+﻿@page "/"
+@using Microsoft.EntityFrameworkCore.ValueGeneration
+@inject IDbContextFactory<PokerDbContext> ContextFactory
+@inject IJSRuntime JS
+
+<PageTitle>Poker Testing Grounds</PageTitle>
+
+<h1>Let's list the Stories here:</h1>
+<br />
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            @if (Stories is null)
+            {
+                <div>Loading . . . </div>
+            }
+            else
+            {
+                @foreach (var story in Stories)
+                {
+                    <div class="@DivCss(story) card" style="width: 16rem;" @onclick="() => ShowCardDetails(story)">
+                        <div class="card-body">
+                            <h5 class="card-title"><span class="oi oi-script" aria-hidden="true"/> @story.DevopsNumber</h5>
+                            <h6 class="card-subtitle mb-2 ">@story.Title</h6>
+                        </div>
+                    </div>
+                    <br />
+                    @*<button class="btn btn-primary">@story.DevopsNumber</button>
+            <br />
+            <br />*@
+                }
+            }
+        </div>
+        <div class="col">
+            <DisplayedCard Story="@HighlightedStory">
+
+            </DisplayedCard>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private Story[]? Stories { get; set; }
+    private Story? HighlightedStory { get; set; }
+    private List<Story> SelectedStory = new List<Story>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var context = ContextFactory.CreateDbContext();
+
+        Stories = await context.Stories
+        .Include(sto => sto.Sprint)
+        .OrderBy(sto => sto.DevopsNumber)
+        .ToArrayAsync();
+    }
+
+    private async Task ShowCardDetails(Story story)
+    {
+        using var context = ContextFactory.CreateDbContext();
+
+        if (SelectedStory is not null)
+        {
+            SelectedStory.Clear();    
+        }
+        SelectedStory.Add(story);
+
+
+        HighlightedStory = await context.Stories
+            .Include(spr => spr.Sprint)
+            .Where(sto => sto.DevopsNumber == story.DevopsNumber)
+            .FirstOrDefaultAsync();
+    }
+
+    private bool isSelected(Story story) => SelectedStory.Any(itm => itm == story);
+
+    private string DivCss(Story story) => isSelected(story) ? "bg-success text-white" : "bg-light";
+}
